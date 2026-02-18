@@ -3,7 +3,7 @@ name: Cybersecurity News Monitor
 on:
   # Run twice per day (every 12 hours)
   schedule:
-    - cron: '0 */12 * * *'  # At minute 0 past every 12th hour
+    - cron: '0 */12 * * *'
   
   # Allow manual trigger
   workflow_dispatch:
@@ -33,10 +33,3 @@ jobs:
         RECIPIENT_EMAIL: ${{ secrets.RECIPIENT_EMAIL }}
       run: |
         python scraper.py
-    
-    - name: Upload logs (if needed for debugging)
-      if: failure()
-      uses: actions/upload-artifact@v4
-      with:
-        name: error-logs
-        path: '*.log'
