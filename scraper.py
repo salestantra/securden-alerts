@@ -136,7 +136,7 @@ class CyberNewsMonitor:
         last_sent = config.get('last_digest_sent')
         if not last_sent:
             return True
-        return (datetime.now(timezone.utc) - last_sent).days >= 30
+        return (datetime.now(timezone.utc) - last_sent.replace(tzinfo=timezone.utc)).days >= 30
 
     def send_digest_email(self):
         if not RESEND_API_KEY:
@@ -144,7 +144,7 @@ class CyberNewsMonitor:
             return
         try:
             config = self.config_collection.find_one({'type': 'digest_config'})
-            since_date = (config.get('last_digest_sent') if config and config.get('last_digest_sent')
+            since_date = (config.get('last_digest_sent').replace(tzinfo=timezone.utc) if config and config.get('last_digest_sent')
                          else datetime.now(timezone.utc) - timedelta(days=30))
             articles = list(self.articles_collection.find(
                 {'is_cyberattack': True, 'scraped_at': {'$gte': since_date}}
