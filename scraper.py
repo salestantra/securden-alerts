@@ -2,7 +2,7 @@
 """
 Cybersecurity News Monitor
 Scrapes TheHackerNews and BleepingComputer for cyberattack news
-Stores in MongoDB and sends monthly digest emails
+Stores in MongoDB and sends Weekly digest emails
 """
 
 import os
@@ -136,7 +136,7 @@ class CyberNewsMonitor:
         last_sent = config.get('last_digest_sent')
         if not last_sent:
             return True
-        return (datetime.now(timezone.utc) - last_sent.replace(tzinfo=timezone.utc)).days >= 30
+        return (datetime.now(timezone.utc) - last_sent.replace(tzinfo=timezone.utc)).days >= 7
 
     def send_digest_email(self):
         if not RESEND_API_KEY:
@@ -145,7 +145,7 @@ class CyberNewsMonitor:
         try:
             config = self.config_collection.find_one({'type': 'digest_config'})
             since_date = (config.get('last_digest_sent').replace(tzinfo=timezone.utc) if config and config.get('last_digest_sent')
-                         else datetime.now(timezone.utc) - timedelta(days=30))
+                         else datetime.now(timezone.utc) - timedelta(days=7))
             articles = list(self.articles_collection.find(
                 {'is_cyberattack': True, 'scraped_at': {'$gte': since_date}}
             ).sort('scraped_at', -1))
@@ -156,7 +156,7 @@ class CyberNewsMonitor:
             params = {
                 "from": SENDER_EMAIL,
                 "to": [RECIPIENT_EMAIL],
-                "subject": f"Monthly Cybersecurity Digest - {len(articles)} Incidents",
+                "subject": f"Weekly Cybersecurity Digest - {len(articles)} Incidents",
                 "html": html_content
             }
             email = resend.Emails.send(params)
@@ -179,7 +179,7 @@ class CyberNewsMonitor:
             ".header{background:#dc2626;color:white;padding:30px;border-radius:10px;margin-bottom:30px}"
             ".article{border:1px solid #e0e0e0;border-radius:8px;padding:20px;margin-bottom:15px}"
             "</style></head><body>"
-            "<div class='header'><h1>Monthly Cybersecurity Digest</h1>"
+            "<div class='header'><h1>Weekly Cybersecurity Digest</h1>"
             f"<p>{since_date.strftime('%B %d, %Y')} - {datetime.now(timezone.utc).strftime('%B %d, %Y')}</p></div>"
             f"<p><strong>{len(articles)}</strong> incidents found</p>"
         )
